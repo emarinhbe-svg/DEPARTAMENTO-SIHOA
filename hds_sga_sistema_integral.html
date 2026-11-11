@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDS-SGA | Sistema Integral de Gestión HDS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
+                        },
+                        forest: '#0f291e',
+                        slate: { 850: '#1e293b' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 bg-forest text-white flex-shrink-0 flex flex-col justify-between z-20 shadow-xl">
+        <div>
+            <div class="p-4 border-b border-emerald-800/50 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-emerald-900/50">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight tracking-wide">HDS-SGA</h1>
+                    <p class="text-[11px] text-emerald-300 font-medium">Gestión Ambiental & SIHO-A</p>
+                </div>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-160px)] custom-scrollbar">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-all bg-emerald-600 text-white shadow-md">
+                    <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+                    <span>Panel Principal</span>
+                </button>
+                <button onclick="switchTab('charlas')" id="nav-charlas" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-chalkboard-user w-4 text-center"></i>
+                    <span>Charlas SIHO-A</span>
+                </button>
+                <button onclick="switchTab('vacaciones')" id="nav-vacaciones" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-calendar-days w-4 text-center"></i>
+                    <span>Vacaciones SIHO-A</span>
+                </button>
+                <button onclick="switchTab('simulacros')" id="nav-simulacros" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-fire-extinguisher w-4 text-center"></i>
+                    <span>Simulacros SIHO-A</span>
+                </button>
+                <button onclick="switchTab('incidentes')" id="nav-incidentes" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-triangle-exclamation w-4 text-center"></i>
+                    <span>Incidentes & Accidentes</span>
+                </button>
+                <button onclick="switchTab('delegados')" id="nav-delegados" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-users-gear w-4 text-center"></i>
+                    <span>Informe de Delegados</span>
+                </button>
+                <button onclick="switchTab('comite')" id="nav-comite" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-handshake w-4 text-center"></i>
+                    <span>Informe de Comité SSST</span>
+                </button>
+                <button onclick="switchTab('epidemiologia')" id="nav-epidemiologia" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-heart-pulse w-4 text-center"></i>
+                    <span>Vigilancia Epidemiológica</span>
+                </button>
+                <button onclick="switchTab('pozos')" id="nav-pozos" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-oil-well w-4 text-center"></i>
+                    <span>Informes por Pozo</span>
+                </button>
+                <button onclick="switchTab('desechos')" id="nav-desechos" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-recycle w-4 text-center"></i>
+                    <span>Desechos (Peligrosos y Domésticos)</span>
+                </button>
+                <button onclick="switchTab('inspecciones')" id="nav-inspecciones" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-clipboard-check w-4 text-center"></i>
+                    <span>Inspecciones SIHO-A</span>
+                </button>
+                <button onclick="switchTab('reportes')" id="nav-reportes" class="nav-btn w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:bg-emerald-900/50 hover:text-white transition-all">
+                    <i class="fa-solid fa-file-contract w-4 text-center"></i>
+                    <span>Exportar y Reportes</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-3 border-t border-emerald-800/50 bg-emerald-950/40">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs">
+                    EM
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-semibold truncate text-slate-200">Ing. Erika Marín</p>
+                    <p class="text-[10px] text-emerald-400 truncate">Coord. Operaciones / HDS</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto custom-scrollbar">
+
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-10 shadow-sm">
+            <div>
+                <h2 id="page-title" class="text-xl font-bold text-slate-800">Panel Principal de Indicadores HDS-SGA</h2>
+                <p class="text-xs text-slate-500">Sistema integral de gestión ambiental, seguridad, higiene y ambiente (SIHO-A)</p>
+            </div>
+            
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <button onclick="openModal('modal-talk')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-medium text-xs flex items-center gap-2 transition shadow-md">
+                    <i class="fa-solid fa-plus"></i> Nueva Charla
+                </button>
+                <button onclick="openModal('modal-quick')" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl font-medium text-xs flex items-center gap-2 transition shadow-md">
+                    <i class="fa-solid fa-sliders"></i> Registrar Módulo
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Container -->
+        <div class="p-6 space-y-6 flex-1">
+
+            <!-- KPI SUMMARY CARDS -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Charlas & Capacitación</span>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 id="kpi-total-talks" class="text-2xl font-extrabold text-slate-800">0</h3>
+                            <span class="text-xs text-slate-500">sesiones</span>
+                        </div>
+                        <p class="mt-1 text-xs text-emerald-600 font-medium"><span id="kpi-total-attendees">0</span> asistentes totales</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Simulacros Ejecutados</span>
+                        <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-base">
+                            <i class="fa-solid fa-fire-extinguisher"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 id="kpi-total-simulacros" class="text-2xl font-extrabold text-slate-800">0</h3>
+                            <span class="text-xs text-slate-500">ejercicios</span>
+                        </div>
+                        <p class="mt-1 text-xs text-blue-600 font-medium">100% plan operativo</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Incidentes & Accidentes</span>
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 id="kpi-total-incidentes" class="text-2xl font-extrabold text-slate-800">0</h3>
+                            <span class="text-xs text-slate-500">reportes</span>
+                        </div>
+                        <p class="mt-1 text-xs text-emerald-600 font-medium">Bajo control operativo</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pozos Terminados / PEA</span>
+                        <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-base">
+                            <i class="fa-solid fa-oil-well"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 id="kpi-total-pozos" class="text-2xl font-extrabold text-slate-800">0</h3>
+                            <span class="text-xs text-slate-500">dossiers</span>
+                        </div>
+                        <p class="mt-1 text-xs text-teal-600 font-medium">PDVSA MA-01-02-12 Aprobado</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 1: DASHBOARD -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-slate-800 text-base mb-1">Tendencia de Capacitación y Simulacros 2026</h3>
+                        <p class="text-xs text-slate-500 mb-4">Seguimiento mensual de cumplimiento SIHO-A</p>
+                        <div class="relative h-72">
+                            <canvas id="chart-main-trend"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <h3 class="font-bold text-slate-800 text-base mb-1">Resumen Normativo</h3>
+                        <p class="text-xs text-slate-500 mb-4">Estado de cumplimiento de módulos</p>
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-between">
+                                <span class="text-xs font-bold text-emerald-800">Inspecciones RACDA</span>
+                                <span class="text-xs font-bold text-emerald-700 bg-emerald-200 px-2 py-0.5 rounded">Al día</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-between">
+                                <span class="text-xs font-bold text-blue-800">Comité SSST / LOPCYMAT</span>
+                                <span class="text-xs font-bold text-blue-700 bg-blue-200 px-2 py-0.5 rounded">Activo</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-between">
+                                <span class="text-xs font-bold text-teal-800">Dossiers de Pozos (PEA)</span>
+                                <span class="text-xs font-bold text-teal-700 bg-teal-200 px-2 py-0.5 rounded">Completados</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: CHARLAS AMBIENTALES -->
+            <div id="tab-charlas" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Registro de Charlas SIHO-A y de Seguridad</h3>
+                            <p class="text-xs text-slate-500">Control de inducciones y formaciones al personal</p>
+                        </div>
+                        <button onclick="openModal('modal-talk')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">Nueva Charla</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Tema</th>
+                                    <th class="p-3">Departamento</th>
+                                    <th class="p-3">Expositor</th>
+                                    <th class="p-3 text-center">Asistentes</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="charlas-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: VACACIONES PERSONAL SIHO-A -->
+            <div id="tab-vacaciones" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Planificación y Control de Vacaciones Personal SIHO-A</h3>
+                            <p class="text-xs text-slate-500">Gestión de períodos vacacionales, relevos y coordinadores suplentes (ej. Ing. Yeraldine Longart)</p>
+                        </div>
+                        <button onclick="openModal('modal-vacacion')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Vacación / Relevo</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Funcionario / Colaborador</th>
+                                    <th class="p-3">Cargo</th>
+                                    <th class="p-3">Inicio Vacaciones</th>
+                                    <th class="p-3">Reincorporación</th>
+                                    <th class="p-3">Coordinador Suplente / Relevo</th>
+                                    <th class="p-3">Estatus</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vacaciones-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: SIMULACROS SIHO-A -->
+            <div id="tab-simulacros" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Programa y Ejecución de Simulacros SIHO-A</h3>
+                            <p class="text-xs text-slate-500">Ejercicios prácticos de respuesta a emergencias (derrames, incendios, H2S)</p>
+                        </div>
+                        <button onclick="openModal('modal-simulacro')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Simulacro</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Tipo de Escenario</th>
+                                    <th class="p-3">Ubicación / Área</th>
+                                    <th class="p-3 text-center">Tiempo Respuesta</th>
+                                    <th class="p-3">Observador / Evaluador</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="simulacros-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: REGISTROS DE INCIDENTES - ACCIDENTES -->
+            <div id="tab-incidentes" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Registros de Incidentes y Accidentes Laborales</h3>
+                            <p class="text-xs text-slate-500">Investigación de eventos, días perdidos, severidad y planes de acción LOPCYMAT</p>
+                        </div>
+                        <button onclick="openModal('modal-incidente')" class="bg-amber-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Incidente</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Descripción del Suceso</th>
+                                    <th class="p-3">Clasificación</th>
+                                    <th class="p-3 text-center">Días Perdidos</th>
+                                    <th class="p-3">Acción Correctiva</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incidentes-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: INFORME DE DELEGADOS -->
+            <div id="tab-delegados" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Informe de Delegados de Prevención</h3>
+                            <p class="text-xs text-slate-500">Seguimiento a recorridos, inspecciones conjuntas y actas de acuerdos</p>
+                        </div>
+                        <button onclick="openModal('modal-delegado')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Informe</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Delegado(a) Responsable</th>
+                                    <th class="p-3">Área Verificada</th>
+                                    <th class="p-3 text-center">Hallazgos / Propuestas</th>
+                                    <th class="p-3">Estatus de Atención</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="delegados-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: INFORME DE COMITÉ SSST -->
+            <div id="tab-comite" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Informe de Comité de Seguridad y Salud en el Trabajo (SSST)</h3>
+                            <p class="text-xs text-slate-500">Actas de reuniones mensuales, cumplimiento LOPCYMAT y acuerdos patronales</p>
+                        </div>
+                        <button onclick="openModal('modal-comite')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Acta Comité</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">N° Acta / Fecha</th>
+                                    <th class="p-3">Temas Principales Tratados</th>
+                                    <th class="p-3">Asistentes / Miembros</th>
+                                    <th class="p-3">Acuerdos Clave</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comite-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 8: INFORME VIGILANCIA EPIDEMIOLÓGICA -->
+            <div id="tab-epidemiologia" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Informe de Vigilancia Epidemiológica y Salud Ocupacional</h3>
+                            <p class="text-xs text-slate-500">Control de exámenes médicos pre-empleo, periódicos, ergonomía y morbilidad</p>
+                        </div>
+                        <button onclick="openModal('modal-epi')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Evaluación</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha / Periodo</th>
+                                    <th class="p-3">Tipo de Examen / Jornada</th>
+                                    <th class="p-3 text-center">Personal Evaluado</th>
+                                    <th class="p-3">Hallazgos Médicos / Aptitud</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="epi-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 9: INFORME POR POZO TERMINADO -->
+            <div id="tab-pozos" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Informes Ambientales y Dossiers por Pozo Terminado</h3>
+                            <p class="text-xs text-slate-500">Planes de Evaluación Ambiental (PEA) PDVSA MA-01-02-12 para well testing y coiled tubing</p>
+                        </div>
+                        <button onclick="openModal('modal-pozo')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Nuevo Dossier Pozo</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Pozo / Proyecto</th>
+                                    <th class="p-3">Distrito / Ubicación</th>
+                                    <th class="p-3">Norma / PEA</th>
+                                    <th class="p-3">Residuos Generados (RACDA)</th>
+                                    <th class="p-3">Estatus Cierre</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pozos-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB NUEVO: DESECHOS PELIGROSOS Y DOMÉSTICOS -->
+            <div id="tab-desechos" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Control de Desechos Generados (Peligrosos y Domésticos)</h3>
+                            <p class="text-xs text-slate-500">Registro de generación, segregación y disposición final (RACDA / Normas Ambientales HDS)</p>
+                        </div>
+                        <button onclick="openModal('modal-desecho')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Registrar Generación de Desechos</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Tipo de Desecho</th>
+                                    <th class="p-3">Descripción / Material</th>
+                                    <th class="p-3 text-center">Cantidad (Kg)</th>
+                                    <th class="p-3">Área / Origen</th>
+                                    <th class="p-3">Empresa Gestora / Disposición</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="desechos-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 10: INSPECCIONES & RACDA -->
+            <div id="tab-inspecciones" class="tab-content space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Control de Inspecciones y RACDA</h3>
+                            <p class="text-xs text-slate-500">Minec, INPSASEL, PDVSA MA-01-02-12</p>
+                        </div>
+                        <button onclick="openModal('modal-inspection')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold">+ Nueva Inspección</button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Norma / Entidad</th>
+                                    <th class="p-3">Área / Pozo</th>
+                                    <th class="p-3">Inspector</th>
+                                    <th class="p-3 text-center">Hallazgos</th>
+                                    <th class="p-3">Estatus</th>
+                                    <th class="p-3 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inspections-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 11: REPORTES & SINCRONIZACIÓN -->
+            <div id="tab-reportes" class="tab-content space-y-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-lg mx-auto mb-3">
+                                <i class="fa-solid fa-file-export"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-800">Exportar Consolidado</h3>
+                            <p class="text-slate-500 text-xs mt-1">Descarga un archivo JSON con todos los registros actuales para compartir con el equipo o auditoría.</p>
+                        </div>
+                        <button onclick="exportAllJSON()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-semibold shadow-md transition">Descargar Respaldo JSON</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4 flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg mx-auto mb-3">
+                                <i class="fa-solid fa-file-import"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-800">Importar / Sincronizar Datos</h3>
+                            <p class="text-slate-500 text-xs mt-1">Carga el archivo JSON actualizado por otro colega (ej. Santiago o Yeraldine) para sincronizar en esta PC.</p>
+                        </div>
+                        <div>
+                            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importAllJSON(event)">
+                            <button onclick="document.getElementById('import-file').click()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-semibold shadow-md transition">Cargar Respaldo JSON</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl max-w-4xl mx-auto space-y-3">
+                    <h4 class="font-bold text-emerald-900 text-sm flex items-center gap-2"><i class="fa-solid fa-cloud"></i> ¿Cómo usarlo en múltiples computadoras?</h4>
+                    <ul class="text-xs text-emerald-800 space-y-1.5 list-disc pl-4">
+                        <li><b>Opción Nube (Recomendada):</b> Sube este archivo HTML a <b>GitHub Pages</b>, <b>Netlify</b> o <b>Vercel</b> de forma gratuita. Obtendrás un enlace web oficial (ej. <code>https://hds-sga.netlify.app</code>) que podrás abrir desde cualquier computadora, teléfono o tablet en la oficina o campo.</li>
+                        <li><b>Opción Colaborativa:</b> Cuando alguien agregue o modifique registros, puede hacer clic en <i>"Descargar Respaldo JSON"</i> y enviarlo por correo o WhatsApp a los demás. Los demás solo deben hacer clic en <i>"Cargar Respaldo JSON"</i> en su computadora para sincronizar al instante.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODALS -->
+    <!-- Modal Desecho -->
+    <div id="modal-desecho" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Generación de Desechos</h3>
+            <form onsubmit="handleSaveDesecho(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Fecha</label><input type="date" id="ds-date" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Clasificación</label><select id="ds-tipo" class="w-full p-2 bg-slate-50 border rounded-xl"><option value="Peligroso">Desecho Peligroso</option><option value="Doméstico / No Peligroso">Desecho Doméstico / No Peligroso</option></select></div>
+                    <div><label class="font-semibold text-slate-600">Cantidad (Kg)</label><input type="number" step="0.1" id="ds-cant" required value="100" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div><label class="font-semibold text-slate-600">Descripción / Material</label><input type="text" id="ds-desc" required placeholder="Ej: Aceite usado / Basura doméstica" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Área / Origen</label><input type="text" id="ds-area" required placeholder="Taller / Campamento Anaco" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                    <div><label class="font-semibold text-slate-600">Empresa Gestora / Destino</label><input type="text" id="ds-gestor" required placeholder="Recicladora / Vertedero" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-desecho')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Talk -->
+    <div id="modal-talk" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Charla Ambiental</h3>
+            <form onsubmit="handleSaveTalk(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Fecha</label><input type="date" id="t-date" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Tema</label><input type="text" id="t-topic" required placeholder="Ej: Segregación de residuos" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Departamento</label><input type="text" id="t-dept" required placeholder="Operaciones" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                    <div><label class="font-semibold text-slate-600">Expositor</label><input type="text" id="t-pres" required placeholder="Ing. Erika Marín" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div><label class="font-semibold text-slate-600">Asistentes</label><input type="number" id="t-att" required value="10" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-talk')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Vacaciones -->
+    <div id="modal-vacacion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Vacaciones SIHO-A</h3>
+            <form onsubmit="handleSaveVacacion(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Funcionario / Colaborador</label><input type="text" id="v-name" required placeholder="Ing. Erika Marín" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Cargo</label><input type="text" id="v-cargo" required placeholder="Coordinadora de Operaciones / SIHO" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Inicio</label><input type="date" id="v-ini" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                    <div><label class="font-semibold text-slate-600">Reincorporación</label><input type="date" id="v-fin" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div><label class="font-semibold text-slate-600">Coordinador Suplente / Relevo</label><input type="text" id="v-relevo" required placeholder="Ing. Yeraldine Longart" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-vacacion')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Simulacro -->
+    <div id="modal-simulacro" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Simulacro SIHO-A</h3>
+            <form onsubmit="handleSaveSimulacro(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Fecha</label><input type="date" id="s-date" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Tipo de Escenario</label><input type="text" id="s-tipo" required placeholder="Ej: Derrame de hidrocarburo / Fuga H2S" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Ubicación / Área</label><input type="text" id="s-area" required placeholder="Pozo MR-52 Anaco" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Tiempo Respuesta (min)</label><input type="text" id="s-time" required placeholder="6 min" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                    <div><label class="font-semibold text-slate-600">Evaluador</label><input type="text" id="s-eval" required placeholder="Ing. Santiago López" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-simulacro')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Incidente -->
+    <div id="modal-incidente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Incidente / Accidente</h3>
+            <form onsubmit="handleSaveIncidente(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Fecha</label><input type="date" id="i-date" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Descripción del Suceso</label><input type="text" id="i-desc" required placeholder="Fuga menor de línea de prueba" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Clasificación</label><select id="i-clas" class="w-full p-2 bg-slate-50 border rounded-xl"><option value="Incidente Operativo">Incidente Operativo</option><option value="Accidente Leve">Accidente Leve</option><option value="Accidente incapacitante">Accidente incapacitante</option></select></div>
+                    <div><label class="font-semibold text-slate-600">Días Perdidos</label><input type="number" id="i-dias" value="0" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div><label class="font-semibold text-slate-600">Acción Correctiva</label><input type="text" id="i-acc" required placeholder="Sustitución de estopera y prueba hidrostática" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-incidente')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-amber-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Delegado -->
+    <div id="modal-delegado" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Informe de Delegados</h3>
+            <form onsubmit="handleSaveDelegado(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Fecha</label><input type="date" id="d-date" required class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Delegado(a) Responsable</label><input type="text" id="d-nom" required placeholder="Representante de Prevención" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Área Verificada</label><input type="text" id="d-area" required placeholder="Taladro / Taller Anaco" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Hallazgos / Propuestas</label><input type="text" id="d-hall" required placeholder="Dotación de EPP y revisión de válvulas" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-delegado')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Comité -->
+    <div id="modal-comite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Acta de Comité SSST</h3>
+            <form onsubmit="handleSaveComite(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">N° Acta / Fecha</label><input type="text" id="c-num" required placeholder="Acta N° 03-2026 (15/03/2026)" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Temas Principales</label><input type="text" id="c-temas" required placeholder="Revisión trimestral de riesgos LOPCYMAT" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Asistentes / Miembros</label><input type="text" id="c-asis" required placeholder="Comité Paritario HDS" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Acuerdos Clave</label><input type="text" id="c-acur" required placeholder="Actualización de matriz IPES y charlas de ergonomía" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-comite')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Epi -->
+    <div id="modal-epi" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Vigilancia Epidemiológica</h3>
+            <form onsubmit="handleSaveEpi(event)" class="space-y-3 text-xs">
+                <div><label class="font-semibold text-slate-600">Periodo / Fecha</label><input type="text" id="e-per" required placeholder="Marzo 2026" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Tipo de Examen / Jornada</label><input type="text" id="e-tipo" required placeholder="Exámenes periódicos ocupacionales" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Personal Evaluado</label><input type="number" id="e-cant" required value="25" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Hallazgos Médicos</label><input type="text" id="e-hal" required placeholder="Personal apto sin restricciones" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-epi')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Pozo -->
+    <div id="modal-pozo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-base text-slate-800">Registrar Informe por Pozo Terminado (PEA)</h3>
+            <form onsubmit="handleSavePozo(event)" class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="font-semibold text-slate-600">Pozo</label><input type="text" id="p-pozo" required placeholder="Pozo MR-52" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                    <div><label class="font-semibold text-slate-600">Distrito</label><input type="text" id="p-dist" required placeholder="Distrito Gas Anaco" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                </div>
+                <div><label class="font-semibold text-slate-600">Norma / PEA</label><input type="text" id="p-norma" required value="PDVSA MA-01-02-12" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Residuos Generados (RACDA)</label><input type="text" id="p-res" required placeholder="Recorte base agua / Aceite usado" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div><label class="font-semibold text-slate-600">Estatus Cierre</label><input type="text" id="p-stat" required value="Dossier Aprobado MINEC" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeModal('modal-pozo')" class="px-3 py-1.5 text-slate-500">Cancelar</button><button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl font-semibold">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Quick / Generic -->
+    <div id="modal-quick" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6 space-y-4 text-center">
+            <h3 class="font-bold text-base text-slate-800">Acceso Rápido a Módulos</h3>
+            <p class="text-xs text-slate-500">Seleccione el módulo que desea gestionar directamente:</p>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeModal('modal-quick'); switchTab('vacaciones')" class="p-3 bg-emerald-50 hover:bg-emerald-100 rounded-xl text-xs font-semibold text-emerald-800">Vacaciones SIHO-A</button>
+                <button onclick="closeModal('modal-quick'); switchTab('simulacros')" class="p-3 bg-blue-50 hover:bg-blue-100 rounded-xl text-xs font-semibold text-blue-800">Simulacros</button>
+                <button onclick="closeModal('modal-quick'); switchTab('incidentes')" class="p-3 bg-amber-50 hover:bg-amber-100 rounded-xl text-xs font-semibold text-amber-800">Incidentes</button>
+                <button onclick="closeModal('modal-quick'); switchTab('pozos')" class="p-3 bg-teal-50 hover:bg-teal-100 rounded-xl text-xs font-semibold text-teal-800">Pozos Terminados</button>
+            </div>
+            <button onclick="closeModal('modal-quick')" class="text-xs text-slate-400 hover:text-slate-600 pt-2">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT STATE & LOGIC -->
+    <script>
+        let talksData = JSON.parse(localStorage.getItem('hds_talks')) || [
+            { id: 1, date: '2026-02-10', topic: 'Segregación de Residuos', dept: 'Operaciones', pres: 'Ing. Erika Marín', att: 15 }
+        ];
+        let vacData = JSON.parse(localStorage.getItem('hds_vac')) || [
+            { id: 1, name: 'Ing. Erika Marín', cargo: 'Coord. Operaciones / SIHO', ini: '2026-09-18', fin: '2026-10-14', relevo: 'Ing. Yeraldine Longart', status: 'Completado' }
+        ];
+        let simData = JSON.parse(localStorage.getItem('hds_sim')) || [
+            { id: 1, date: '2026-03-05', tipo: 'Derrame de Hidrocarburo', area: 'Pozo MR-52 Anaco', time: '5 min', eval: 'Ing. Santiago López' }
+        ];
+        let incData = JSON.parse(localStorage.getItem('hds_inc')) || [
+            { id: 1, date: '2026-01-20', desc: 'Fuga menor en línea de prueba', clas: 'Incidente Operativo', dias: 0, acc: 'Sustitución de estopera' }
+        ];
+        let delData = JSON.parse(localStorage.getItem('hds_del')) || [
+            { id: 1, date: '2026-02-28', nom: 'Delegado de Prevención', area: 'Talleres HDS', hall: 'Verificación de extintores', stat: 'Atendido' }
+        ];
+        let comData = JSON.parse(localStorage.getItem('hds_com')) || [
+            { id: 1, num: 'Acta N° 02-2026', temas: 'Revisión de riesgos LOPCYMAT', asis: 'Comité Paritario HDS', acur: 'Actualización IPES' }
+        ];
+        let epiData = JSON.parse(localStorage.getItem('hds_epi')) || [
+            { id: 1, per: 'Feb 2026', tipo: 'Exámenes Ocupacionales Periódicos', cant: 22, hal: 'Personal apto' }
+        ];
+        let pozData = JSON.parse(localStorage.getItem('hds_poz')) || [
+            { id: 1, pozo: 'Pozo MR-52', dist: 'Distrito Gas Anaco', norma: 'PDVSA MA-01-02-12', res: 'Recortes base agua / RACDA', stat: 'Aprobado MINEC' }
+        ];
+        let inspData = JSON.parse(localStorage.getItem('hds_insp')) || [
+            { id: 1, date: '2026-02-10', norm: 'RACDA / MINEC', area: 'Almacén', auditor: 'Ing. Erika Marín', findings: 0, status: 'Conforme' }
+        ];
+        let desechosData = JSON.parse(localStorage.getItem('hds_desechos')) || [
+            { id: 1, date: '2026-03-01', tipo: 'Peligroso', desc: 'Aceites usados de motor', cant: 350, area: 'Taller Mecánico', gestor: 'Gestor Autorizado RACDA' },
+            { id: 2, date: '2026-03-02', tipo: 'Doméstico / No Peligroso', desc: 'Residuos sólidos orgánicos e inorgánicos', cant: 1200, area: 'Campamento Anaco', gestor: 'Aseo Municipal' }
+        ];
+
+        function saveData() {
+            localStorage.setItem('hds_talks', JSON.stringify(talksData));
+            localStorage.setItem('hds_vac', JSON.stringify(vacData));
+            localStorage.setItem('hds_sim', JSON.stringify(simData));
+            localStorage.setItem('hds_inc', JSON.stringify(incData));
+            localStorage.setItem('hds_del', JSON.stringify(delData));
+            localStorage.setItem('hds_com', JSON.stringify(comData));
+            localStorage.setItem('hds_epi', JSON.stringify(epiData));
+            localStorage.setItem('hds_poz', JSON.stringify(pozData));
+            localStorage.setItem('hds_insp', JSON.stringify(inspData));
+            localStorage.setItem('hds_desechos', JSON.stringify(desechosData));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllTables();
+            initChart();
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-md');
+                b.classList.add('text-slate-300');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            const btn = document.getElementById(`nav-${tab}`);
+            if (btn) {
+                btn.classList.add('bg-emerald-600', 'text-white', 'shadow-md');
+                btn.classList.remove('text-slate-300');
+            }
+            const titles = {
+                'dashboard': 'Panel Principal de Indicadores HDS-SGA',
+                'charlas': 'Registro de Charlas SIHO-A',
+                'vacaciones': 'Vacaciones y Relevos SIHO-A',
+                'simulacros': 'Simulacros de Respuesta a Emergencias',
+                'incidentes': 'Control de Incidentes y Accidentes',
+                'delegados': 'Informe de Delegados de Prevención',
+                'comite': 'Informe de Comité SSST (LOPCYMAT)',
+                'epidemiologia': 'Vigilancia Epidemiológica y Salud Ocupacional',
+                'pozos': 'Informes Ambientales por Pozo Terminado',
+                'inspecciones': 'Control de Inspecciones y RACDA',
+                'reportes': 'Exportación y Reportes Institucionales'
+            };
+            document.getElementById('page-title').innerText = titles[tab] || 'HDS-SGA';
+        }
+
+        function renderAllTables() {
+            saveData();
+            // KPIs
+            document.getElementById('kpi-total-talks').innerText = talksData.length;
+            document.getElementById('kpi-total-attendees').innerText = talksData.reduce((a,b)=>a+Number(b.att),0);
+            document.getElementById('kpi-total-simulacros').innerText = simData.length;
+            document.getElementById('kpi-total-incidentes').innerText = incData.length;
+            document.getElementById('kpi-total-pozos').innerText = pozData.length;
+
+            // Charlas
+            let tb1 = document.getElementById('charlas-tbody'); tb1.innerHTML = '';
+            talksData.forEach(t => {
+                tb1.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${t.date}</td><td class="p-3 font-bold">${t.topic}</td><td class="p-3">${t.dept}</td><td class="p-3">${t.pres}</td><td class="p-3 text-center font-bold text-emerald-700">${t.att}</td><td class="p-3 text-center"><button onclick="del('talks', ${t.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Vacaciones
+            let tb2 = document.getElementById('vacaciones-tbody'); tb2.innerHTML = '';
+            vacData.forEach(v => {
+                tb2.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-bold">${v.name}</td><td class="p-3">${v.cargo}</td><td class="p-3">${v.ini}</td><td class="p-3">${v.fin}</td><td class="p-3 font-semibold text-emerald-700">${v.relevo}</td><td class="p-3"><span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">${v.status}</span></td><td class="p-3 text-center"><button onclick="del('vac', ${v.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Simulacros
+            let tb3 = document.getElementById('simulacros-tbody'); tb3.innerHTML = '';
+            simData.forEach(s => {
+                tb3.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${s.date}</td><td class="p-3 font-bold">${s.tipo}</td><td class="p-3">${s.area}</td><td class="p-3 text-center font-bold">${s.time}</td><td class="p-3">${s.eval}</td><td class="p-3 text-center"><button onclick="del('sim', ${s.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Incidentes
+            let tb4 = document.getElementById('incidentes-tbody'); tb4.innerHTML = '';
+            incData.forEach(i => {
+                tb4.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${i.date}</td><td class="p-3 font-bold">${i.desc}</td><td class="p-3"><span class="px-2 py-1 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">${i.clas}</span></td><td class="p-3 text-center font-bold">${i.dias}</td><td class="p-3">${i.acc}</td><td class="p-3 text-center"><button onclick="del('inc', ${i.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Delegados
+            let tb5 = document.getElementById('delegados-tbody'); tb5.innerHTML = '';
+            delData.forEach(d => {
+                tb5.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${d.date}</td><td class="p-3 font-bold">${d.nom}</td><td class="p-3">${d.area}</td><td class="p-3 text-center">${d.hall}</td><td class="p-3"><span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">${d.stat}</span></td><td class="p-3 text-center"><button onclick="del('del', ${d.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Comité
+            let tb6 = document.getElementById('comite-tbody'); tb6.innerHTML = '';
+            comData.forEach(c => {
+                tb6.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-bold">${c.num}</td><td class="p-3">${c.temas}</td><td class="p-3">${c.asis}</td><td class="p-3 font-semibold text-emerald-800">${c.acur}</td><td class="p-3 text-center"><button onclick="del('com', ${c.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Epidemiología
+            let tb7 = document.getElementById('epi-tbody'); tb7.innerHTML = '';
+            epiData.forEach(e => {
+                tb7.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${e.per}</td><td class="p-3 font-bold">${e.tipo}</td><td class="p-3 text-center font-bold text-emerald-700">${e.cant}</td><td class="p-3">${e.hal}</td><td class="p-3 text-center"><button onclick="del('epi', ${e.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Pozos
+            let tb8 = document.getElementById('pozos-tbody'); tb8.innerHTML = '';
+            pozData.forEach(p => {
+                tb8.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-bold text-teal-800">${p.pozo}</td><td class="p-3">${p.dist}</td><td class="p-3 font-semibold">${p.norma}</td><td class="p-3">${p.res}</td><td class="p-3"><span class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-bold">${p.stat}</span></td><td class="p-3 text-center"><button onclick="del('poz', ${p.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Inspecciones
+            let tb9 = document.getElementById('inspections-tbody'); tb9.innerHTML = '';
+            inspData.forEach(x => {
+                tb9.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${x.date}</td><td class="p-3 font-bold">${x.norm}</td><td class="p-3">${x.area}</td><td class="p-3">${x.auditor}</td><td class="p-3 text-center font-bold">${x.findings}</td><td class="p-3"><span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">${x.status}</span></td><td class="p-3 text-center"><button onclick="del('insp', ${x.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            // Desechos (Peligrosos y Domésticos)
+            let tb10 = document.getElementById('desechos-tbody'); tb10.innerHTML = '';
+            desechosData.forEach(d => {
+                tb10.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-3 font-semibold">${d.date}</td><td class="p-3"><span class="px-2 py-1 ${d.tipo==='Peligroso'?'bg-rose-100 text-rose-800':'bg-teal-100 text-teal-800'} rounded text-[10px] font-bold">${d.tipo}</span></td><td class="p-3 font-bold">${d.desc}</td><td class="p-3 text-center font-extrabold">${d.cant} Kg</td><td class="p-3">${d.area}</td><td class="p-3">${d.gestor}</td><td class="p-3 text-center"><button onclick="del('desechos', ${d.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+        }
+
+        // Save handlers
+        function handleSaveTalk(e) {
+            e.preventDefault();
+            talksData.push({ id: Date.now(), date: document.getElementById('t-date').value, topic: document.getElementById('t-topic').value, dept: document.getElementById('t-dept').value, pres: document.getElementById('t-pres').value, att: Number(document.getElementById('t-att').value) });
+            closeModal('modal-talk'); renderAllTables(); alert('Charla guardada');
+        }
+        function handleSaveVacacion(e) {
+            e.preventDefault();
+            vacData.push({ id: Date.now(), name: document.getElementById('v-name').value, cargo: document.getElementById('v-cargo').value, ini: document.getElementById('v-ini').value, fin: document.getElementById('v-fin').value, relevo: document.getElementById('v-relevo').value, status: 'Programado / Vigente' });
+            closeModal('modal-vacacion'); renderAllTables(); alert('Vacación registrada');
+        }
+        function handleSaveSimulacro(e) {
+            e.preventDefault();
+            simData.push({ id: Date.now(), date: document.getElementById('s-date').value, tipo: document.getElementById('s-tipo').value, area: document.getElementById('s-area').value, time: document.getElementById('s-time').value, eval: document.getElementById('s-eval').value });
+            closeModal('modal-simulacro'); renderAllTables(); alert('Simulacro registrado');
+        }
+        function handleSaveIncidente(e) {
+            e.preventDefault();
+            incData.push({ id: Date.now(), date: document.getElementById('i-date').value, desc: document.getElementById('i-desc').value, clas: document.getElementById('i-clas').value, dias: Number(document.getElementById('i-dias').value), acc: document.getElementById('i-acc').value });
+            closeModal('modal-incidente'); renderAllTables(); alert('Incidente registrado');
+        }
+        function handleSaveDelegado(e) {
+            e.preventDefault();
+            delData.push({ id: Date.now(), date: document.getElementById('d-date').value, nom: document.getElementById('d-nom').value, area: document.getElementById('d-area').value, hall: document.getElementById('d-hall').value, stat: 'En Revisión' });
+            closeModal('modal-delegado'); renderAllTables(); alert('Informe de Delegado registrado');
+        }
+        function handleSaveComite(e) {
+            e.preventDefault();
+            comData.push({ id: Date.now(), num: document.getElementById('c-num').value, temas: document.getElementById('c-temas').value, asis: document.getElementById('c-asis').value, acur: document.getElementById('c-acur').value });
+            closeModal('modal-comite'); renderAllTables(); alert('Acta de Comité guardada');
+        }
+        function handleSaveEpi(e) {
+            e.preventDefault();
+            epiData.push({ id: Date.now(), per: document.getElementById('e-per').value, tipo: document.getElementById('e-tipo').value, cant: Number(document.getElementById('e-cant').value), hal: document.getElementById('e-hal').value });
+            closeModal('modal-epi'); renderAllTables(); alert('Evaluación epidemiológica guardada');
+        }
+        function handleSavePozo(e) {
+            e.preventDefault();
+            pozData.push({ id: Date.now(), pozo: document.getElementById('p-pozo').value, dist: document.getElementById('p-dist').value, norma: document.getElementById('p-norma').value, res: document.getElementById('p-res').value, stat: document.getElementById('p-stat').value });
+            closeModal('modal-pozo'); renderAllTables(); alert('Dossier de pozo guardado');
+        }
+        function handleSaveDesecho(e) {
+            e.preventDefault();
+            desechosData.push({ id: Date.now(), date: document.getElementById('ds-date').value, tipo: document.getElementById('ds-tipo').value, desc: document.getElementById('ds-desc').value, cant: Number(document.getElementById('ds-cant').value), area: document.getElementById('ds-area').value, gestor: document.getElementById('ds-gestor').value });
+            closeModal('modal-desecho'); renderAllTables(); alert('Registro de desechos guardado');
+        }
+
+        function del(type, id) {
+            if(!confirm('¿Eliminar este registro?')) return;
+            if(type==='talks') talksData = talksData.filter(x=>x.id!==id);
+            if(type==='vac') vacData = vacData.filter(x=>x.id!==id);
+            if(type==='sim') simData = simData.filter(x=>x.id!==id);
+            if(type==='inc') incData = incData.filter(x=>x.id!==id);
+            if(type==='del') delData = delData.filter(x=>x.id!==id);
+            if(type==='com') comData = comData.filter(x=>x.id!==id);
+            if(type==='epi') epiData = epiData.filter(x=>x.id!==id);
+            if(type==='poz') pozData = pozData.filter(x=>x.id!==id);
+            if(type==='insp') inspData = inspData.filter(x=>x.id!==id);
+            if(type==='desechos') desechosData = desechosData.filter(x=>x.id!==id);
+            renderAllTables();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function exportAllJSON() {
+            const all = { talks: talksData, vacaciones: vacData, simulacros: simData, incidentes: incData, delegados: delData, comite: comData, epidemiologia: epiData, pozos: pozData, inspecciones: inspData };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(all, null, 2));
+            const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `HDS_SGA_Consolidado_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(dl); dl.click(); dl.remove();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('chart-main-trend').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    datasets: [
+                        { label: 'Charlas SIHO-A', data: [2, 3, 4, 2, 3, 3, 2, 4, 3, 3, 2, 3], backgroundColor: '#10b981', borderRadius: 4 },
+                        { label: 'Simulacros SIHO-A', data: [1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1], backgroundColor: '#3b82f6', borderRadius: 4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+    </script>
+</body>
+</html>
